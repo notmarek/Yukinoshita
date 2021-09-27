@@ -144,6 +144,7 @@ class Downloader(object):
         # disk.
         decrypt_pipe_output, decrypt_pipe_input = Pipe()
         client = aiohttp.ClientSession()
+        client.headers.update({"Referrer": "https://kwik.cx"})
 
         # Check if the m3u8 file passed in has multiple streams, if this is the
         # case then select the stream with the highest "bandwidth" specified.
