@@ -44,7 +44,7 @@ def _remove_segments():
         shutil.rmtree(SEGMENT_DIR)
 
 def _decrypt_worker(
-        pipe_output: connection.PipeConnection,
+        pipe_output,
         resume_file_path: str,
         progress_tracker):
     logging.debug("Decrypt process started.")
@@ -86,7 +86,7 @@ def _write_concat_info(file_name, segment_count):
     logging.info("Wrote Concat Info.")
 
 
-async def _download_worker(download_queue: asyncio.Queue, decrypt_pipe_input: connection.PipeConnection, client: aiohttp.ClientSession):
+async def _download_worker(download_queue: asyncio.Queue, decrypt_pipe_input, client: aiohttp.ClientSession):
     logging.debug("Started download worker.")
     while True:
         segment_data = await download_queue.get()
@@ -94,10 +94,10 @@ async def _download_worker(download_queue: asyncio.Queue, decrypt_pipe_input: co
         resp: aiohttp.ClientResponse = await client.get(segment.uri)
         resp_data: bytes = await resp.read()
         logging.info(f"Fetched segment number {segment_number}.")
-
         if segment.key is not None and segment.key != '':
             key_resp = await client.get(segment.key.uri)
             key = await key_resp.read()
+            print(key)
         else:
             key = b""
 
@@ -143,8 +143,7 @@ class Downloader(object):
         # data to the decrypt process for decryption and for writing to the
         # disk.
         decrypt_pipe_output, decrypt_pipe_input = Pipe()
-        client = aiohttp.ClientSession()
-        client.headers.update({"Referrer": "https://kwik.cx"})
+        client = aiohttp.ClientSession(headers={"Referer": "https://kwik.cx"})
 
         # Check if the m3u8 file passed in has multiple streams, if this is the
         # case then select the stream with the highest "bandwidth" specified.
